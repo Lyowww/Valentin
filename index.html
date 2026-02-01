@@ -139,7 +139,7 @@
         }
 
         const makeNoEscape = () => {
-          hint.classList.add('hint-hide')
+          if (hint) hint.classList.add('hint-hide')
           enableNoEscape()
           placeNoButton()
           noBtn.classList.add('no-shake')
@@ -269,6 +269,9 @@
               openEmailDraftFallback()
             })
         })
+
+        enableNoEscape()
+        placeNoButton()
       })()
     </script>
   </body>
