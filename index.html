@@ -92,6 +92,7 @@
         const hint = document.getElementById('hint')
         const confetti = document.getElementById('confetti')
         const safePad = 14
+        let noEscapeEnabled = false
 
         const getViewport = () => {
           const vv = window.visualViewport
@@ -114,12 +115,32 @@
 
           noBtn.style.left = `${x}px`
           noBtn.style.top = `${y}px`
-          noBtn.style.transform = 'translate3d(0, 0, 0)'
+          noBtn.style.transform = 'translate3d(0, 0, 0) rotate(-0.6deg)'
           noBtn.style.opacity = '1'
+        }
+
+        const enableNoEscape = () => {
+          if (noEscapeEnabled) return
+          noEscapeEnabled = true
+
+          const r = noBtn.getBoundingClientRect()
+          noBtn.classList.add('no-escape')
+          noBtn.style.left = `${r.left}px`
+          noBtn.style.top = `${r.top}px`
+          noBtn.style.transform = 'translate3d(0, 0, 0)'
+
+          window.addEventListener('resize', placeNoButton, { passive: true })
+          window.visualViewport?.addEventListener('resize', placeNoButton, {
+            passive: true,
+          })
+          window.visualViewport?.addEventListener('scroll', placeNoButton, {
+            passive: true,
+          })
         }
 
         const makeNoEscape = () => {
           hint.classList.add('hint-hide')
+          enableNoEscape()
           placeNoButton()
           noBtn.classList.add('no-shake')
           setTimeout(() => noBtn.classList.remove('no-shake'), 220)
@@ -132,15 +153,6 @@
         if (prefersReducedMotion) {
           document.documentElement.classList.add('reduced-motion')
         }
-
-        placeNoButton()
-        window.addEventListener('resize', placeNoButton, { passive: true })
-        window.visualViewport?.addEventListener('resize', placeNoButton, {
-          passive: true,
-        })
-        window.visualViewport?.addEventListener('scroll', placeNoButton, {
-          passive: true,
-        })
 
         noBtn.addEventListener('pointerenter', makeNoEscape)
         noBtn.addEventListener('pointerdown', (e) => {
