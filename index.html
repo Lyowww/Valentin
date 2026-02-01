@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ff3b8d" />
+    <meta name="color-scheme" content="dark light" />
+    <title>valentin</title>
+    <meta
+      name="description"
+      content="Will you be my Valentin this year?"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Inter:wght@300..800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg">
+      <div class="glow glow-a"></div>
+      <div class="glow glow-b"></div>
+      <div class="glow glow-c"></div>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="stars" aria-hidden="true"></div>
+      <div class="hearts" aria-hidden="true">
+        <span class="heart h1"></span>
+        <span class="heart h2"></span>
+        <span class="heart h3"></span>
+        <span class="heart h4"></span>
+        <span class="heart h5"></span>
+        <span class="heart h6"></span>
+        <span class="heart h7"></span>
+        <span class="heart h8"></span>
+      </div>
+    </div>
+
+    <main class="wrap">
+      <section class="card" aria-live="polite">
+        <div class="badge" aria-hidden="true">
+          <span class="badge-dot"></span>
+          <span class="badge-text">valentin</span>
+        </div>
+
+        <h1 class="title">
+          Will you be my
+          <span class="title-accent">Valentin</span>
+          this year?
+        </h1>
+
+        <p class="subtitle">
+          one click, and we start a tiny love story
+        </p>
+
+        <div class="actions" id="actions">
+          <button class="btn yes" id="yesBtn" type="button">
+            <span class="btn-shine" aria-hidden="true"></span>
+            <span class="btn-label">Yes</span>
+          </button>
+
+          <button class="btn no" id="noBtn" type="button">
+            <span class="btn-label">No</span>
+          </button>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+        <div class="hint" id="hint">
+          tip: try catching “No”
+        </div>
+      </section>
+
+      <footer class="foot">
+        <span class="foot-pill" aria-hidden="true"></span>
+        <span class="foot-text">made with courage + butterflies</span>
+      </footer>
+    </main>
+
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+    <script>
+      ;(() => {
+        const emailTo = 'lyova.h1.g@gmail.com'
+        const yesBtn = document.getElementById('yesBtn')
+        const noBtn = document.getElementById('noBtn')
+        const actions = document.getElementById('actions')
+        const status = document.getElementById('status')
+        const hint = document.getElementById('hint')
+        const confetti = document.getElementById('confetti')
+
+        const clamp = (n, min, max) => Math.min(Math.max(n, min), max)
+
+        const placeNoButton = () => {
+          const safePad = 14
+          const a = actions.getBoundingClientRect()
+          const b = noBtn.getBoundingClientRect()
+          const rangeX = Math.max(0, a.width - b.width - safePad * 2)
+          const rangeY = Math.max(0, a.height - b.height - safePad * 2)
+
+          const x = safePad + Math.random() * rangeX
+          const y = safePad + Math.random() * rangeY
+
+          noBtn.style.transform = `translate(${x}px, ${y}px)`
+          noBtn.style.opacity = '1'
+        }
+
+        const makeNoEscape = () => {
+          hint.classList.add('hint-hide')
+          placeNoButton()
+          noBtn.classList.add('no-shake')
+          setTimeout(() => noBtn.classList.remove('no-shake'), 220)
+        }
+
+        const prefersReducedMotion = window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches
+
+        if (prefersReducedMotion) {
+          document.documentElement.classList.add('reduced-motion')
+        }
+
+        placeNoButton()
+        window.addEventListener('resize', placeNoButton, { passive: true })
+
+        noBtn.addEventListener('pointerenter', makeNoEscape)
+        noBtn.addEventListener('pointerdown', (e) => {
+          if (e.pointerType === 'touch') makeNoEscape()
+        })
+        noBtn.addEventListener('click', (e) => {
+          e.preventDefault()
+          makeNoEscape()
+        })
+
+        const celebrate = () => {
+          confetti.innerHTML = ''
+          const count = prefersReducedMotion ? 0 : 48
+          for (let i = 0; i < count; i++) {
+            const p = document.createElement('span')
+            p.className = 'piece'
+            p.style.left = Math.random() * 100 + '%'
+            p.style.animationDelay = Math.random() * 550 + 'ms'
+            p.style.animationDuration = 900 + Math.random() * 850 + 'ms'
+            p.style.setProperty('--r', Math.floor(Math.random() * 360) + 'deg')
+            p.style.setProperty('--s', 0.85 + Math.random() * 0.65)
+            confetti.appendChild(p)
+          }
+          confetti.classList.add('confetti-on')
+          setTimeout(() => confetti.classList.remove('confetti-on'), 2200)
+        }
+
+        const setStatus = (kind, text) => {
+          status.className = `status status-${kind}`
+          status.textContent = text
+        }
+
+        const openEmailDraft = () => {
+          const subject = encodeURIComponent('She said YES 💘')
+          const body = encodeURIComponent(
+            [
+              'She clicked YES on your Valentin page.',
+              '',
+              'Now go be cute and plan the date.',
+            ].join('\n')
+          )
+          const href = `mailto:${emailTo}?subject=${subject}&body=${body}`
+          window.location.href = href
+        }
+
+        yesBtn.addEventListener('click', () => {
+          celebrate()
+          yesBtn.classList.add('btn-locked')
+          noBtn.classList.add('btn-fade')
+          setStatus(
+            'ok',
+            `Perfect. I opened an email to ${emailTo}. Tap “Send” and then… wait until she will date you.`
+          )
+          openEmailDraft()
+        })
+      })()
+    </script>
+  </body>
+</html>
+
