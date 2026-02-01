@@ -73,35 +73,48 @@
 
       <footer class="foot">
         <span class="foot-pill" aria-hidden="true"></span>
-        <span class="foot-text">made with courage + butterflies</span>
       </footer>
     </main>
 
     <div class="confetti" id="confetti" aria-hidden="true"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
-      ;(() => {
+      (() => {
         const emailTo = 'lyova.h1.g@gmail.com'
+        const emailjsPublicKey = 'otzsFWkyIrjahEVv9'
+        const emailjsServiceId = 'service_j3wnewo'
+        const emailjsTemplateId = 'template_yahabcr'
         const yesBtn = document.getElementById('yesBtn')
         const noBtn = document.getElementById('noBtn')
         const actions = document.getElementById('actions')
         const status = document.getElementById('status')
         const hint = document.getElementById('hint')
         const confetti = document.getElementById('confetti')
+        const safePad = 14
 
-        const clamp = (n, min, max) => Math.min(Math.max(n, min), max)
+        const getViewport = () => {
+          const vv = window.visualViewport
+          return {
+            w: vv ? vv.width : window.innerWidth,
+            h: vv ? vv.height : window.innerHeight,
+            ox: vv ? vv.offsetLeft : 0,
+            oy: vv ? vv.offsetTop : 0,
+          }
+        }
 
         const placeNoButton = () => {
-          const safePad = 14
-          const a = actions.getBoundingClientRect()
           const b = noBtn.getBoundingClientRect()
-          const rangeX = Math.max(0, a.width - b.width - safePad * 2)
-          const rangeY = Math.max(0, a.height - b.height - safePad * 2)
+          const v = getViewport()
+          const rangeX = Math.max(0, v.w - b.width - safePad * 2)
+          const rangeY = Math.max(0, v.h - b.height - safePad * 2)
 
-          const x = safePad + Math.random() * rangeX
-          const y = safePad + Math.random() * rangeY
+          const x = v.ox + safePad + Math.random() * rangeX
+          const y = v.oy + safePad + Math.random() * rangeY
 
-          noBtn.style.transform = `translate(${x}px, ${y}px)`
+          noBtn.style.left = `${x}px`
+          noBtn.style.top = `${y}px`
+          noBtn.style.transform = 'translate3d(0, 0, 0)'
           noBtn.style.opacity = '1'
         }
 
@@ -122,6 +135,12 @@
 
         placeNoButton()
         window.addEventListener('resize', placeNoButton, { passive: true })
+        window.visualViewport?.addEventListener('resize', placeNoButton, {
+          passive: true,
+        })
+        window.visualViewport?.addEventListener('scroll', placeNoButton, {
+          passive: true,
+        })
 
         noBtn.addEventListener('pointerenter', makeNoEscape)
         noBtn.addEventListener('pointerdown', (e) => {
@@ -154,28 +173,58 @@
           status.textContent = text
         }
 
-        const openEmailDraft = () => {
+        const isEmailJsConfigured = () =>
+          emailjsPublicKey !== 'YOUR_EMAILJS_PUBLIC_KEY' &&
+          emailjsServiceId !== 'YOUR_EMAILJS_SERVICE_ID' &&
+          emailjsTemplateId !== 'YOUR_EMAILJS_TEMPLATE_ID' &&
+          window.emailjs &&
+          typeof window.emailjs.init === 'function' &&
+          typeof window.emailjs.send === 'function'
+
+        const openEmailDraftFallback = () => {
           const subject = encodeURIComponent('She said YES 💘')
           const body = encodeURIComponent(
-            [
-              'She clicked YES on your Valentin page.',
-              '',
-              'Now go be cute and plan the date.',
-            ].join('\n')
+            ['She clicked YES on your Valentin page.', '', 'Now plan the date.'].join('\n')
           )
-          const href = `mailto:${emailTo}?subject=${subject}&body=${body}`
-          window.location.href = href
+          window.location.href = `mailto:${emailTo}?subject=${subject}&body=${body}`
+        }
+
+        const sendEmailAutomatically = async () => {
+          window.emailjs.init({ publicKey: emailjsPublicKey })
+          await window.emailjs.send(emailjsServiceId, emailjsTemplateId, {
+            to_email: emailTo,
+            subject: 'She said YES 💘',
+            message:
+              'She clicked YES on your Valentin page. Now go be cute and plan the date.',
+          })
         }
 
         yesBtn.addEventListener('click', () => {
           celebrate()
           yesBtn.classList.add('btn-locked')
           noBtn.classList.add('btn-fade')
-          setStatus(
-            'ok',
-            `Perfect. I opened an email to ${emailTo}. Tap “Send” and then… wait until she will date you.`
-          )
-          openEmailDraft()
+          setStatus('ok', 'Sending...')
+
+          if (!isEmailJsConfigured()) {
+            setStatus(
+              'ok',
+              `EmailJS is not configured yet. I opened an email draft to ${emailTo}.`
+            )
+            openEmailDraftFallback()
+            return
+          }
+
+          sendEmailAutomatically()
+            .then(() => {
+              setStatus('ok', `Sent to ${emailTo}. Now… wait until she will date you.`)
+            })
+            .catch(() => {
+              setStatus(
+                'ok',
+                `Couldn’t auto-send. I opened an email draft to ${emailTo}.`
+              )
+              openEmailDraftFallback()
+            })
         })
       })()
     </script>
